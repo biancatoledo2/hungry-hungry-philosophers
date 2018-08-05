@@ -10,14 +10,21 @@
 #include <pthread.h>
 #include <stdio.h>
 
+#define num_philo 4
+
 typedef enum{
   philo_thinking = 0,
-  philo_hungry,
-  philo_eating,
-  philo_undefined
+  philo_hungry = 1,
+  philo_eating = 2,
+  philo_undefined = 3,
 }philostate;
 
 extern const char* philostate_str[];
+
+// struct for local values
+struct data{
+	int philo_status[num_philo];
+}localdata;
 
 typedef struct Philosopher{
   /* Philosopher's ID; be aware that thread_t is an opaque type and you should

@@ -33,7 +33,6 @@
 #define RAND_STATE_SIZE 64
 
 
-
 /** Print out how to use the program; optionally print a message.
  * Help the user understand how the program is used through a simeple
  * usage message. Optionally, a message is printed when a non-null
@@ -64,14 +63,24 @@ void* philosopher_thread_entry_point(void *philo_struct){
   while(1){
     // First the philosopher ponders the meaning of life.
     sleep_time = bounded_random(1, philo->max_sleep);
+
+	// thinking state
     philo->state = philo_thinking;
+    pthread_mutex_lock(philo->block_monitor);
+	localdata.philo_status[philo->id] = philo->state;
+    pthread_mutex_unlock(philo->block_monitor);
+
     philo->total_thinking_time[philo->id] += sleep_time;
     debug("Philosopher %d thinking for %ld seconds\n", philo->id, sleep_time);
     sleep(sleep_time);
     debug("Philosopher %d is no longer thinking.\n", philo->id);
 
-    // The thinking, triggers pangs of hunger
+	// hunger state
     philo->state = philo_hungry;
+    pthread_mutex_lock(philo->block_monitor);
+	localdata.philo_status[philo->id] = philo->state;
+    pthread_mutex_unlock(philo->block_monitor);
+
     debug("Philosopher %d is hungry.\n", philo->id);
     t = time(NULL);
     pthread_mutex_lock(philo->block_monitor);
@@ -81,8 +90,12 @@ void* philosopher_thread_entry_point(void *philo_struct){
     debug("Philosopher %d is reaching for a chopstick.\n", philo->id);
     philosopher_chopstick_pickup(philo);
     debug("Philosopher %d is trying to eat.\n", philo->id);
-    philo->state = philo_eating;
-
+/*
+	// eating state
+    pthread_mutex_lock(philo->block_monitor);
+	localdata.philo_status[philo-id] = philo->state;
+    pthread_mutex_unlock(philo->block_monitor);
+*/
     pthread_mutex_lock(philo->block_monitor);
     philo->total_block_time[philo->id] += (time(NULL) - t);
     philo->start_block_time[philo->id] = -1;

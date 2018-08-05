@@ -8,9 +8,12 @@
  */
 
 #include <stdlib.h>
-
+#include <stdbool.h>
 #include "philosopher.h"
 
+#define num_philo 4
+#define L (philo->id + 3) % num_philo
+#define R (philo->id + 1) % num_philo
 /*
  * The implementation below does nothing. Replace the contents of these
  * functions with a (correct) implementation of the the dining philsophers 
@@ -18,15 +21,52 @@
  */
 
 void* philosopher_init_local_vals(int philo_count){
-  return NULL;
+
+	void* temp =  &localdata;
+
+	return temp;
 }
 
+/*
+	check if adjacent philosophers are eating
+	if not, then grab and eat
+*/
 void philosopher_chopstick_pickup(Philosopher *philo){
-  return;
+	bool starving = true;
+	bool waiting = true;
+	//waits for opening to grab those chopsticks
+	while(starving){
+			if(
+			localdata.philo_status[L] != philo_eating &&
+			localdata.philo_status[R] != philo_eating ){
+
+				//seize the chopsticks!
+				philo->state = philo_eating;
+				pthread_mutex_lock(philo->block_monitor);
+				localdata.philo_status[philo->id] = philo->state;
+				pthread_mutex_unlock(philo->block_monitor);
+				starving = false;
+
+			}
+			else if(waiting){
+				printf("\nPhilosopher %d is patiently waiting", philo->id);
+				waiting = false;	
+			}
+	}
+
+	printf("\nSTATUS REPORT: PHILOSOPHER ID  %d STATUS  %d", philo->id, philo->state);
+	return;
 }
 
 void philosopher_chopstick_putdown(Philosopher *philo){
-  return;
+	
+	philo->state = philo_undefined;
+	pthread_mutex_lock(philo->block_monitor);
+	localdata.philo_status[philo->id] = philo->state;
+	pthread_mutex_unlock(philo->block_monitor);
+
+	return;
+
 }
 
 /*
